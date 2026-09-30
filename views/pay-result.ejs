@@ -1,0 +1,27 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card" style="text-align:center;">
+  <% if (state === 'paid') { %>
+    <div style="font-size:56px;">✅</div>
+    <h1>Fee paid — thank you</h1>
+    <p style="color:#5b6b78;">The platform fee for <strong><%= trade.listing_title %></strong> has been paid in full. Enjoy your trade!</p>
+    <p><a class="btn" href="/dashboard">Back to dashboard</a></p>
+  <% } else if (state === 'failed') { %>
+    <div style="font-size:56px;">⚠️</div>
+    <h1>Payment didn't go through</h1>
+    <p style="color:#5b6b78;"><%= message %></p>
+    <p><a class="btn" href="/trades/<%= trade.id %>/pay">Try again</a></p>
+  <% } else if (state === 'noconn') { %>
+    <div style="font-size:56px;">🧾</div>
+    <h1>Fee recorded</h1>
+    <p style="color:#5b6b78;">Online card payments aren't set up on this marketplace yet. Your fee of <strong><%= money(trade.fee_cents) %></strong> for <strong><%= trade.listing_title %></strong> has been recorded and the site owner will collect it from you directly.</p>
+    <p><a class="btn" href="/dashboard">Back to dashboard</a></p>
+  <% } else { %>
+    <div style="font-size:56px;">⚠️</div>
+    <h1>Something went wrong</h1>
+    <p style="color:#5b6b78;"><%= message || 'The payment could not be processed. Please try again.' %></p>
+    <p><a class="btn" href="/trades/<%= trade.id %>/pay">Try again</a></p>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

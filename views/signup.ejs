@@ -1,0 +1,33 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card">
+  <h1>Create your account</h1>
+  <p style="color:#5b6b78;">Join Valora to list items and make trade offers. It's free.</p>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/signup">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" type="text" name="username" value="<%= username %>" maxlength="20" required autocomplete="username">
+      <div class="hint">3–20 characters, letters and numbers only.</div>
+    </div>
+    <div class="field">
+      <label for="display_name">Display name</label>
+      <input id="display_name" type="text" name="display_name" value="<%= display_name %>" maxlength="60" required>
+      <div class="hint">The name other traders see on your listings.</div>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="<%= email %>" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="new-password" minlength="8">
+      <div class="hint">At least 8 characters.</div>
+    </div>
+    <button class="btn" type="submit" style="width:100%;">Sign up</button>
+  </form>
+  <p style="text-align:center;margin-top:16px;">Already have an account? <a href="/login">Log in</a></p>
+</div>
+
+<%- include('partials/footer') %>

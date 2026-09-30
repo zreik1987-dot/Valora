@@ -1,0 +1,26 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card">
+  <h1>Pay the platform fee</h1>
+  <p style="color:#5b6b78;">
+    Trade completed: <strong><%= trade.listing_title %></strong><br>
+    Valora's 5% fee on the cash portion of this trade is <strong style="color:#007f78;"><%= amount %></strong>.
+  </p>
+  <form id="payment-form">
+    <div id="payment-element"></div>
+    <button class="btn" id="submit-btn" type="submit" style="width:100%;">Pay <%= amount %></button>
+    <div id="payment-message" class="alert alert-error" style="display:none;margin-top:14px;"></div>
+  </form>
+  <p style="font-size:13px;color:#5b6b78;margin-top:14px;">Payments are processed securely by Stripe. Valora never sees your card details.</p>
+</div>
+
+<div id="pay-data"
+  data-publishable-key="<%= publishableKey %>"
+  data-client-secret="<%= clientSecret %>"
+  data-trade-id="<%= trade.id %>"
+  data-csrf="<%= csrfToken %>"></div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script src="/js/pay.js"></script>
+
+<%- include('partials/footer') %>

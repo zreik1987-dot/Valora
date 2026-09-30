@@ -1,0 +1,32 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card">
+  <h1>Owner setup</h1>
+  <p style="color:#5b6b78;">Create the single owner account for this Valora marketplace. This page works exactly once and is then permanently disabled.</p>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/setup">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="token" value="<%= token %>">
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" type="text" name="username" value="<%= username %>" maxlength="20" required autocomplete="username">
+      <div class="hint">3–20 characters, letters and numbers only.</div>
+    </div>
+    <div class="field">
+      <label for="display_name">Display name</label>
+      <input id="display_name" type="text" name="display_name" value="<%= display_name %>" maxlength="60" required>
+    </div>
+    <div class="field">
+      <label for="email">Email (must match the configured owner email)</label>
+      <input id="email" type="email" name="email" value="<%= ownerEmail %>" readonly required>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="new-password" minlength="8">
+      <div class="hint">At least 8 characters. Choose a strong, unique password.</div>
+    </div>
+    <button class="btn" type="submit" style="width:100%;">Create owner account</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

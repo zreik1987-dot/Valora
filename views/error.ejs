@@ -1,0 +1,10 @@
+<%- include('partials/header', { title: (typeof title !== 'undefined' && title) ? title : ('Error ' + status) }) %>
+
+<div class="form-card" style="text-align:center;">
+  <div style="font-size:56px;">🧭</div>
+  <h1><%= status %></h1>
+  <p style="color:#5b6b78;"><%= message %></p>
+  <p><a class="btn" href="/">Back to home</a></p>
+</div>
+
+<%- include('partials/footer') %>

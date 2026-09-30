@@ -1,0 +1,62 @@
+<%- include('partials/header', { title: title }) %>
+
+<h1>Browse listings</h1>
+
+<div class="filters">
+  <form method="GET" action="/browse">
+    <div>
+      <label for="f-cat" style="font-weight:700;font-size:13px;">Category</label>
+      <select id="f-cat" name="category">
+        <option value="">All categories</option>
+        <% CATEGORIES.forEach(function(cat) { %>
+          <option value="<%= cat %>" <%= filters.category === cat ? 'selected' : '' %>><%= cat %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div>
+      <label for="f-cond" style="font-weight:700;font-size:13px;">Condition</label>
+      <select id="f-cond" name="condition">
+        <option value="">New &amp; used</option>
+        <option value="new" <%= filters.condition === 'new' ? 'selected' : '' %>>New</option>
+        <option value="used" <%= filters.condition === 'used' ? 'selected' : '' %>>Used</option>
+      </select>
+    </div>
+    <div>
+      <label for="f-q" style="font-weight:700;font-size:13px;">Search</label>
+      <input id="f-q" type="text" name="q" value="<%= filters.q %>" placeholder="What are you looking for?">
+    </div>
+    <div>
+      <button class="btn btn-small" type="submit" style="width:100%;">Filter</button>
+    </div>
+  </form>
+</div>
+
+<% if (listings.length) { %>
+  <p style="color:#5b6b78;"><%= listings.length %> listing<%= listings.length === 1 ? '' : 's' %> found</p>
+  <div class="listing-grid">
+    <% listings.forEach(function(l) { %>
+      <a class="card" href="/listings/<%= l.id %>">
+        <div class="card-img">
+          <% if (l.cover) { %><img src="/uploads/<%= l.cover %>" alt=""><% } else { %><%= CATEGORY_EMOJI[l.category] || '📦' %><% } %>
+        </div>
+        <div class="card-body">
+          <h3><%= l.title %></h3>
+          <div class="card-meta">
+            <span class="badge badge-<%= l.condition %>"><%= l.condition %></span>
+            <span><%= l.category %></span>
+            <span>by <%= l.owner_name %></span>
+          </div>
+          <% if (l.price_estimate_cents) { %><div class="card-price"><%= money(l.price_estimate_cents) %> <span style="font-weight:400;font-size:12px;color:#5b6b78;">est.</span></div><% } %>
+        </div>
+      </a>
+    <% }); %>
+  </div>
+<% } else { %>
+  <div class="empty">
+    <h3>Nothing matches those filters</h3>
+    <p>Try a different category or search term — or list the item yourself.</p>
+    <p><a class="btn" href="/listings/new">List an item</a></p>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

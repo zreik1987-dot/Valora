@@ -1,0 +1,41 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card">
+  <h1>Make a trade offer</h1>
+  <div class="alert alert-info">
+    Offering on: <strong><%= listing.title %></strong> (<%= listing.condition %>, listed by <%= listing.owner_name %>)
+  </div>
+  <p style="color:#5b6b78;">Describe what you're offering in exchange. You can add cash on top if your item is worth less than theirs.</p>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/listings/<%= listing.id %>/offer" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="item_title">Your item</label>
+      <input id="item_title" type="text" name="item_title" value="<%= form.item_title || '' %>" maxlength="120" required placeholder="e.g. Acoustic guitar with case">
+    </div>
+    <div class="field">
+      <label>Your item's condition</label>
+      <div class="radio-row">
+        <label><input type="radio" name="item_condition" value="new" <%= form.item_condition === 'new' ? 'checked' : '' %> required> New</label>
+        <label><input type="radio" name="item_condition" value="used" <%= form.item_condition !== 'new' ? 'checked' : '' %>> Used</label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="item_description">Describe your item</label>
+      <textarea id="item_description" name="item_description" required placeholder="Condition, age, what's included…"><%= form.item_description || '' %></textarea>
+    </div>
+    <div class="field">
+      <label for="cash_on_top">Cash on top (optional)</label>
+      <input id="cash_on_top" type="text" name="cash_on_top" value="<%= form.cash_on_top || '' %>" placeholder="0" inputmode="decimal">
+      <div class="hint">Extra cash you'll pay alongside your item, in dollars. Enter 0 or leave blank for an even swap.</div>
+    </div>
+    <div class="field">
+      <label for="photos">Photos of your item (up to 6)</label>
+      <input id="photos" type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+      <div class="hint">JPG, PNG, WebP or GIF, 5MB max each.</div>
+    </div>
+    <button class="btn" type="submit" style="width:100%;">Send trade offer</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

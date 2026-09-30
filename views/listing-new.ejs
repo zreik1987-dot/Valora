@@ -1,0 +1,49 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card">
+  <h1>List an item</h1>
+  <p style="color:#5b6b78;">Tell people what you have. Good photos and an honest description get the best offers.</p>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/listings" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" type="text" name="title" value="<%= form.title || '' %>" maxlength="120" required>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <% CATEGORIES.forEach(function(cat) { %>
+            <option value="<%= cat %>" <%= form.category === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="field">
+        <label>Condition</label>
+        <div class="radio-row">
+          <label><input type="radio" name="condition" value="new" <%= form.condition === 'new' ? 'checked' : '' %> required> New</label>
+          <label><input type="radio" name="condition" value="used" <%= form.condition !== 'new' ? 'checked' : '' %>> Used</label>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="price_estimate">Estimated value (optional)</label>
+      <input id="price_estimate" type="text" name="price_estimate" value="<%= form.price_estimate || '' %>" placeholder="e.g. 250" inputmode="decimal">
+      <div class="hint">Roughly what your item is worth, in dollars. Helps others make fair offers.</div>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" required><%= form.description || '' %></textarea>
+      <div class="hint">Condition, age, what's included, why you're trading it — at least 10 characters.</div>
+    </div>
+    <div class="field">
+      <label for="photos">Photos (up to 6)</label>
+      <input id="photos" type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+      <div class="hint">JPG, PNG, WebP or GIF, 5MB max each.</div>
+    </div>
+    <button class="btn" type="submit" style="width:100%;">Publish listing</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

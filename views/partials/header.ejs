@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= title %> · Valora</title>
+<meta name="description" content="Valora — Trade Almost Anything. List items, make trade offers, and swap with people near you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="Valora home">
+      <span class="brand-mark">V</span>
+      <span class="brand-text">Valora<small>Trade Almost Anything</small></span>
+    </a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/browse">Browse</a>
+      <a href="/about">About</a>
+      <% if (member) { %>
+        <a href="/dashboard">Dashboard</a>
+        <% if (member.is_owner) { %><a href="/owner" class="owner-link">Owner</a><% } %>
+        <form class="inline-form" method="POST" action="/logout">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="link-btn" type="submit">Log out</button>
+        </form>
+      <% } else { %>
+        <a href="/login">Log in</a>
+        <a class="btn btn-small" href="/signup">Sign up</a>
+      <% } %>
+    </nav>
+  </div>
+</header>
+<main class="wrap page">

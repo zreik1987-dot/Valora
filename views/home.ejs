@@ -1,0 +1,82 @@
+<%- include('partials/header', { title: title }) %>
+
+<section class="hero">
+  <h1>Trade Almost Anything</h1>
+  <p>Valora is the marketplace where your stuff finds its next owner. List what you no longer need, get trade offers from real people, and swap — adding cash on top when the values don't match.</p>
+  <a class="btn" href="/browse">Browse listings</a>
+  <a class="btn btn-outline" href="/listings/new" style="color:#fff;border-color:#fff;">List an item</a>
+  <div class="hero-stats">
+    <div><strong>5%</strong><span>Platform fee</span></div>
+    <div><strong>6</strong><span>Categories</span></div>
+    <div><strong>$0</strong><span>Fee when no cash trades hands</span></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Shop by category</h2>
+  </div>
+  <div class="cat-grid">
+    <% CATEGORIES.forEach(function(cat) { %>
+      <a class="cat-tile" href="/browse?category=<%= encodeURIComponent(cat) %>">
+        <span class="emoji"><%= CATEGORY_EMOJI[cat] %></span>
+        <strong><%= cat %></strong>
+      </a>
+    <% }); %>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Newest listings</h2>
+    <a href="/browse">View all →</a>
+  </div>
+  <% if (listings.length) { %>
+    <div class="listing-grid">
+      <% listings.forEach(function(l) { %>
+        <a class="card" href="/listings/<%= l.id %>">
+          <div class="card-img">
+            <% if (l.cover) { %><img src="/uploads/<%= l.cover %>" alt=""><% } else { %><%= CATEGORY_EMOJI[l.category] || '📦' %><% } %>
+          </div>
+          <div class="card-body">
+            <h3><%= l.title %></h3>
+            <div class="card-meta">
+              <span class="badge badge-<%= l.condition %>"><%= l.condition %></span>
+              <span><%= l.category %></span>
+            </div>
+            <% if (l.price_estimate_cents) { %><div class="card-price"><%= money(l.price_estimate_cents) %> <span style="font-weight:400;font-size:12px;color:#5b6b78;">est.</span></div><% } %>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="empty">
+      <h3>No listings yet — be the first</h3>
+      <p>Valora just opened its doors. List the first item and start trading.</p>
+      <p><a class="btn" href="/listings/new">List an item</a></p>
+    </div>
+  <% } %>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>How it works</h2></div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>List your item</h3>
+      <p>Snap a few photos, describe what you have, and pick a category. Listing is free and takes a minute.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Get trade offers</h3>
+      <p>Other members offer their own items in exchange — with cash on top when the values don't quite match.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Complete the trade</h3>
+      <p>Accept the best offer and arrange the swap. Valora collects a small 5% fee only on the cash portion.</p>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

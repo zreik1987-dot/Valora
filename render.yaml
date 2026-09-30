@@ -1,0 +1,23 @@
+# Render blueprint for Valora — free web service.
+# Deploy via: Render dashboard → New → Blueprint → point at the repo.
+# Then add a free Neon Postgres and paste its connection string as DATABASE_URL.
+
+services:
+  - type: web
+    name: valora
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # paste the Neon connection string in the dashboard
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_EMAIL
+        value: zreik1987@gmail.com
+      - key: SETUP_TOKEN
+        generateValue: true

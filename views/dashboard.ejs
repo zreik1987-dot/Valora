@@ -1,0 +1,131 @@
+<%- include('partials/header', { title: title }) %>
+
+<h1>Dashboard</h1>
+<p style="color:#5b6b78;">Welcome back, <strong><%= member.display_name %></strong>.</p>
+<% if (notice) { %><div class="alert alert-ok"><%= notice %></div><% } %>
+
+<section class="dash-section">
+  <div class="section-head">
+    <h2>My listings</h2>
+    <a class="btn btn-small" href="/listings/new">+ New listing</a>
+  </div>
+  <% if (myListings.length) { %>
+    <div class="listing-grid">
+      <% myListings.forEach(function(l) { %>
+        <div class="card">
+          <a href="/listings/<%= l.id %>" style="display:block;">
+            <div class="card-img">
+              <% if (l.cover) { %><img src="/uploads/<%= l.cover %>" alt=""><% } else { %><%= CATEGORY_EMOJI[l.category] || '📦' %><% } %>
+            </div>
+          </a>
+          <div class="card-body">
+            <h3><a href="/listings/<%= l.id %>" style="color:inherit;"><%= l.title %></a></h3>
+            <div class="card-meta">
+              <span class="badge badge-<%= l.status %>"><%= l.status %></span>
+              <span><%= l.pending_offers %> pending offer<%= l.pending_offers === 1 ? '' : 's' %></span>
+            </div>
+            <% if (l.status === 'active') { %>
+              <form method="POST" action="/listings/<%= l.id %>/remove" data-confirm="Remove this listing?" style="margin-top:10px;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="link-btn" type="submit" style="color:#c0392b;font-size:13px;">Remove listing</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="empty"><h3>No listings yet</h3><p><a class="btn" href="/listings/new">List your first item</a></p></div>
+  <% } %>
+</section>
+
+<section class="dash-section">
+  <h2>Offers received</h2>
+  <% if (offersReceived.length) { %>
+    <% offersReceived.forEach(function(o) { %>
+      <div class="offer-card">
+        <div class="thumb">
+          <% if (o.cover) { %><img src="/uploads/<%= o.cover %>" alt=""><% } else { %>📦<% } %>
+        </div>
+        <div>
+          <h3><%= o.item_title %> <span class="badge badge-<%= o.item_condition %>"><%= o.item_condition %></span></h3>
+          <p>For your listing: <a href="/listings/<%= o.listing_id %>"><strong><%= o.listing_title %></strong></a> · from <strong><%= o.from_name %></strong></p>
+          <p><%= o.item_description.length > 160 ? o.item_description.slice(0, 160) + '…' : o.item_description %></p>
+          <p><strong>Cash on top: <%= money(o.cash_on_top_cents) %></strong> · <%= fmtDate(o.created_at) %></p>
+        </div>
+        <div class="offer-actions">
+          <form method="POST" action="/offers/<%= o.id %>/accept" data-confirm="Accept this offer? Your listing will be marked as traded.">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn btn-small" type="submit">Accept</button>
+          </form>
+          <form method="POST" action="/offers/<%= o.id %>/decline">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn btn-small btn-outline" type="submit">Decline</button>
+          </form>
+        </div>
+      </div>
+    <% }); %>
+  <% } else { %>
+    <p style="color:#5b6b78;">No pending offers on your listings right now.</p>
+  <% } %>
+</section>
+
+<section class="dash-section">
+  <h2>Offers I've made</h2>
+  <% if (offersMade.length) { %>
+    <% offersMade.forEach(function(o) { %>
+      <div class="offer-card">
+        <div class="thumb">📦</div>
+        <div>
+          <h3><%= o.item_title %> <span class="badge badge-<%= o.status %>"><%= o.status %></span></h3>
+          <p>On: <a href="/listings/<%= o.listing_id %>"><strong><%= o.listing_title %></strong></a></p>
+          <p><strong>Cash on top: <%= money(o.cash_on_top_cents) %></strong> · <%= fmtDate(o.created_at) %></p>
+        </div>
+        <div class="offer-actions">
+          <% if (o.status === 'pending') { %>
+            <form method="POST" action="/offers/<%= o.id %>/withdraw">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-small btn-outline" type="submit">Withdraw</button>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    <% }); %>
+  <% } else { %>
+    <p style="color:#5b6b78;">You haven't made any offers yet. <a href="/browse">Find something to trade for</a>.</p>
+  <% } %>
+</section>
+
+<section class="dash-section">
+  <h2>My completed trades</h2>
+  <% if (trades.length) { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Item</th><th>With</th><th>Cash on top</th><th>Fee</th><th>Fee status</th><th>Date</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% trades.forEach(function(t) { %>
+            <tr>
+              <td><a href="/listings/<%= t.listing_id %>"><%= t.listing_title %></a></td>
+              <td><%= t.seller_member_id === member.id ? t.buyer_name : t.seller_name %></td>
+              <td><%= money(t.cash_on_top_cents) %></td>
+              <td><%= money(t.fee_cents) %></td>
+              <td><span class="badge badge-<%= t.fee_status %>"><%= t.fee_status %></span></td>
+              <td><%= fmtDate(t.completed_at) %></td>
+              <td>
+                <% if (t.buyer_member_id === member.id && t.fee_cents > 0 && t.fee_status === 'unpaid') { %>
+                  <a class="btn btn-small" href="/trades/<%= t.id %>/pay">Pay fee</a>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <p style="color:#5b6b78;">No completed trades yet.</p>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

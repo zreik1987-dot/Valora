@@ -1,0 +1,101 @@
+<%- include('partials/header', { title: title }) %>
+
+<h1>Owner admin</h1>
+<p style="color:#5b6b78;">Marketplace overview, fee ledger, and payment settings.</p>
+
+<% if (stripeOk) { %><div class="alert alert-ok">Stripe is connected. Fee payments are live.</div><% } %>
+<% if (stripeError) { %><div class="alert alert-error"><%= stripeError %></div><% } %>
+
+<div class="stat-grid">
+  <div class="stat"><strong><%= money(totals.paid) %></strong><span>Fees collected</span></div>
+  <div class="stat"><strong><%= money(totals.unpaid) %></strong><span>Fees awaiting payment</span></div>
+  <div class="stat"><strong><%= totals.entries %></strong><span>Fee ledger entries</span></div>
+  <div class="stat"><strong><%= trades.length %></strong><span>Completed trades</span></div>
+</div>
+
+<section class="dash-section">
+  <h2>Stripe payments</h2>
+  <div class="form-card" style="margin:0;max-width:720px;">
+    <% if (stripeStatus.connected) { %>
+      <p><span class="connected-pill">● Connected</span></p>
+      <p style="color:#5b6b78;font-size:14px;">
+        Key in use ends with <strong><%= stripeStatus.masked %></strong>
+        · connected <%= fmtDate(stripeStatus.connectedAt) %>.<br>
+        Keys are stored server-side only and are never shown in the browser.
+      </p>
+      <p style="color:#5b6b78;font-size:14px;">To rotate the key, paste a new one below.</p>
+    <% } else { %>
+      <p style="color:#5b6b78;">Not connected. Paste your Stripe keys to collect the 5% platform fee by card. Trades still complete without Stripe — the fee is recorded as unpaid in the ledger.</p>
+    <% } %>
+    <form method="POST" action="/owner/stripe">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="secret_key">Restricted secret key</label>
+        <input id="secret_key" type="password" name="secret_key" autocomplete="off" placeholder="rk_live_…">
+        <div class="hint">Validated against Stripe on save. Never displayed after saving.</div>
+      </div>
+      <div class="field">
+        <label for="publishable_key">Publishable key</label>
+        <input id="publishable_key" type="text" name="publishable_key" autocomplete="off" placeholder="pk_live_…">
+      </div>
+      <button class="btn" type="submit">Validate &amp; save</button>
+    </form>
+  </div>
+</section>
+
+<section class="dash-section">
+  <h2>Fee ledger</h2>
+  <% if (ledger.length) { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Date</th><th>Listing</th><th>Seller</th><th>Buyer</th><th>Cash on top</th><th>Fee</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <% ledger.forEach(function(e) { %>
+            <tr>
+              <td><%= fmtDate(e.created_at) %></td>
+              <td><%= e.listing_title %></td>
+              <td><%= e.seller_name %></td>
+              <td><%= e.buyer_name %></td>
+              <td><%= money(e.cash_on_top_cents) %></td>
+              <td><strong><%= money(e.amount_cents) %></strong></td>
+              <td><span class="badge badge-<%= e.status %>"><%= e.status %></span></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <p style="color:#5b6b78;">No fees recorded yet. The first 5% fee lands here when a trade completes.</p>
+  <% } %>
+</section>
+
+<section class="dash-section">
+  <h2>Recent trades</h2>
+  <% if (trades.length) { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Date</th><th>Item</th><th>Seller</th><th>Buyer</th><th>Cash on top</th><th>Fee</th></tr>
+        </thead>
+        <tbody>
+          <% trades.forEach(function(t) { %>
+            <tr>
+              <td><%= fmtDate(t.completed_at) %></td>
+              <td><a href="/listings/<%= t.listing_id %>"><%= t.listing_title %></a></td>
+              <td><%= t.seller_name %></td>
+              <td><%= t.buyer_name %></td>
+              <td><%= money(t.cash_on_top_cents) %></td>
+              <td><%= money(t.fee_cents) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <p style="color:#5b6b78;">No trades completed yet.</p>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

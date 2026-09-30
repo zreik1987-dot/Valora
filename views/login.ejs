@@ -1,0 +1,23 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="form-card">
+  <h1>Welcome back</h1>
+  <p style="color:#5b6b78;">Log in to manage your listings and offers.</p>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/login">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (next) { %><input type="hidden" name="next" value="<%= next %>"><% } %>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="<%= email %>" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <button class="btn" type="submit" style="width:100%;">Log in</button>
+  </form>
+  <p style="text-align:center;margin-top:16px;">New to Valora? <a href="/signup">Create an account</a></p>
+</div>
+
+<%- include('partials/footer') %>
