@@ -9,6 +9,28 @@ const { ah } = lib;
 module.exports = function (db, cfg, mw) {
   const r = express.Router();
 
+  // Sitemap for search engines: static pages + all active listings.
+  r.get(
+    '/sitemap.xml',
+    ah(async (req, res) => {
+      const base = (cfg.publicBaseUrl || 'https://valora-kytg.onrender.com').replace(/\/$/, '');
+      const listings = await db.all(
+        `SELECT id FROM listings WHERE status = 'active' ORDER BY id DESC LIMIT 5000`
+      );
+      const urls = ['', '/browse', '/about', '/signup'].map((p) => `${base}${p}/`);
+      for (const l of listings) urls.push(`${base}/listings/${l.id}/`);
+      res.type('application/xml').send(
+        `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+          urls.map((u) => `  <url><loc>${u}</loc></url>`).join('\n') +
+          `\n</urlset>`
+      );
+    })
+  );
+
+  r.get('/robots.txt', (req, res) => {
+    res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: /sitemap.xml\n');
+  });
+
   r.get(
     '/',
     ah(async (req, res) => {
