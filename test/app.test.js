@@ -233,6 +233,83 @@ describe('owner setup and owner-only routes', () => {
     const owners = await ctx.db.get('SELECT COUNT(*) AS c FROM members WHERE is_owner = 1');
     assert.equal(Number(owners.c), 1, 'exactly one owner exists');
   });
+
+  it('lets the owner remove a member with all their data, but never the owner', async () => {
+    const ownerAgent = request.agent(ctx.app);
+    await login(ownerAgent, OWNER_EMAIL, 'ownerpass123');
+
+    const seller = await signup(request.agent(ctx.app), { username: 'removeseller' });
+    const buyer = await signup(request.agent(ctx.app), { username: 'removebuyer' });
+    const listingId = await createListing(seller.agent, { title: 'Seller bike' });
+    const buyerRow = await ctx.db.get(`SELECT id FROM members WHERE username = 'removebuyer'`);
+    const sellerRow = await ctx.db.get(`SELECT id FROM members WHERE username = 'removeseller'`);
+
+    // buyer offers $1.00 cash on top; seller accepts -> trade + $0.05 fee
+    const bt = await dashboardCsrf(buyer.agent);
+    const offerRes = await postOffer(buyer.agent, listingId, bt, { cash_on_top: '1' });
+    assert.equal(offerRes.status, 302);
+    const offer = await ctx.db.get(
+      `SELECT * FROM offers WHERE listing_id = ? AND from_member_id = ? AND status = 'pending'`,
+      listingId,
+      buyerRow.id
+    );
+    assert.ok(offer, 'pending offer exists');
+    const st = await dashboardCsrf(seller.agent);
+    const accRes = await seller.agent
+      .post(`/offers/${offer.id}/accept`)
+      .type('form')
+      .send({ _csrf: st });
+    assert.equal(accRes.status, 302);
+    const fee = await ctx.db.get('SELECT * FROM fee_ledger');
+    assert.ok(fee, 'fee ledger entry created');
+    assert.equal(fee.amount_cents, 5, '5% of $1.00 is $0.05');
+
+    // a non-owner cannot remove members
+    const evilT = await dashboardCsrf(buyer.agent);
+    const evilRes = await buyer.agent
+      .post(`/owner/members/${sellerRow.id}/delete`)
+      .type('form')
+      .send({ _csrf: evilT });
+    assert.equal(evilRes.status, 403);
+
+    // owner removes the buyer: their offers, trades and fee rows go too
+    const ot = await csrfFor(ownerAgent, '/owner');
+    const delRes = await ownerAgent
+      .post(`/owner/members/${buyerRow.id}/delete`)
+      .type('form')
+      .send({ _csrf: ot });
+    assert.equal(delRes.status, 302);
+    assert.equal(await ctx.db.get('SELECT id FROM members WHERE id = ?', buyerRow.id), null);
+    assert.equal((await ctx.db.all('SELECT id FROM trades')).length, 0);
+    assert.equal((await ctx.db.all('SELECT id FROM fee_ledger')).length, 0);
+
+    // owner removes the seller: listing and photos cascade
+    const ot2 = await csrfFor(ownerAgent, '/owner');
+    const delRes2 = await ownerAgent
+      .post(`/owner/members/${sellerRow.id}/delete`)
+      .type('form')
+      .send({ _csrf: ot2 });
+    assert.equal(delRes2.status, 302);
+    assert.equal((await ctx.db.all('SELECT id FROM listings')).length, 0);
+    assert.equal((await ctx.db.all('SELECT id FROM offers')).length, 0);
+
+    // the owner account itself can never be removed here
+    const ownerRow = await ctx.db.get('SELECT id FROM members WHERE is_owner = 1');
+    const ot3 = await csrfFor(ownerAgent, '/owner');
+    const selfRes = await ownerAgent
+      .post(`/owner/members/${ownerRow.id}/delete`)
+      .type('form')
+      .send({ _csrf: ot3 });
+    assert.equal(selfRes.status, 400);
+    const stillOwner = await ctx.db.get('SELECT id FROM members WHERE is_owner = 1');
+    assert.equal(stillOwner.id, ownerRow.id);
+
+    // only the owner remains among the members this test created
+    const remaining = await ctx.db.all('SELECT username FROM members');
+    const names = remaining.map((m) => m.username);
+    assert.ok(names.includes('zrek'), 'owner still exists');
+    assert.ok(!names.includes('removeseller') && !names.includes('removebuyer'));
+  });
 });
 
 // ---------- auth, sessions, CSRF ----------

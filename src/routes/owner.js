@@ -78,7 +78,13 @@ async function ownerPageData(db) {
     settings && settings.secret_key
       ? { connected: true, masked: maskKey(settings.secret_key), connectedAt: settings.connected_at }
       : { connected: false };
-  return { totals, ledger, trades, stripeStatus };
+  const members = await db.all(
+    `SELECT m.id, m.username, m.display_name, m.email, m.created_at,
+            (SELECT COUNT(*) FROM listings l WHERE l.member_id = m.id AND l.status = 'active') AS active_listings,
+            (SELECT COUNT(*) FROM offers o WHERE o.from_member_id = m.id AND o.status = 'pending') AS pending_offers
+     FROM members m WHERE m.is_owner = 0 ORDER BY m.created_at DESC LIMIT 200`
+  );
+  return { totals, ledger, trades, stripeStatus, members };
 }
 
 module.exports = function (db, cfg, mw) {
@@ -164,7 +170,53 @@ module.exports = function (db, cfg, mw) {
         ...data,
         stripeError: null,
         stripeOk: req.query.stripe === 'connected',
+        memberError: null,
+        memberOk: req.query.member === 'removed',
       });
+    })
+  );
+
+  // ---- Remove a member (owner only). Listings, offers, photos, sessions and
+  // login rows cascade from members; trades and fee-ledger rows (which have
+  // no cascade) are deleted first in FK-safe order. The owner account itself
+  // can never be removed here.
+  r.post(
+    '/owner/members/:id/delete',
+    mw.requireOwner,
+    mw.requireCsrf,
+    ah(async (req, res) => {
+      const data = await ownerPageData(db);
+      const fail = (memberError) =>
+        res.status(400).render('owner', {
+          title: 'Owner admin',
+          ...data,
+          stripeError: null,
+          stripeOk: false,
+          memberError,
+          memberOk: false,
+        });
+      const targetId = parseInt(req.params.id, 10);
+      const target = Number.isInteger(targetId)
+        ? await db.get('SELECT id, username, is_owner FROM members WHERE id = ?', targetId)
+        : null;
+      if (!target) return fail('Member not found.');
+      if (target.is_owner) return fail('The owner account cannot be removed.');
+      if (target.id === req.member.id) return fail('You cannot remove your own account.');
+      await db.transaction(async (tx) => {
+        await tx.run(
+          `DELETE FROM fee_ledger WHERE trade_id IN
+             (SELECT id FROM trades WHERE seller_member_id = ? OR buyer_member_id = ?)`,
+          target.id,
+          target.id
+        );
+        await tx.run(
+          `DELETE FROM trades WHERE seller_member_id = ? OR buyer_member_id = ?`,
+          target.id,
+          target.id
+        );
+        await tx.run(`DELETE FROM members WHERE id = ?`, target.id);
+      });
+      res.redirect('/owner?member=removed');
     })
   );
 
@@ -183,6 +235,8 @@ module.exports = function (db, cfg, mw) {
           ...data,
           stripeError: message,
           stripeOk: false,
+          memberError: null,
+          memberOk: false,
         });
       };
 

@@ -5,6 +5,8 @@
 
 <% if (stripeOk) { %><div class="alert alert-ok">Stripe is connected. Fee payments are live.</div><% } %>
 <% if (stripeError) { %><div class="alert alert-error"><%= stripeError %></div><% } %>
+<% if (memberOk) { %><div class="alert alert-ok">Member removed.</div><% } %>
+<% if (memberError) { %><div class="alert alert-error"><%= memberError %></div><% } %>
 
 <div class="stat-grid">
   <div class="stat"><strong><%= money(totals.paid) %></strong><span>Fees collected</span></div>
@@ -95,6 +97,37 @@
     </div>
   <% } else { %>
     <p style="color:#5b6b78;">No trades completed yet.</p>
+  <% } %>
+</section>
+
+<section class="dash-section">
+  <h2>Members</h2>
+  <% if (members.length) { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Member</th><th>Email</th><th>Active listings</th><th>Pending offers</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% members.forEach(function(m) { %>
+            <tr>
+              <td><strong><%= m.display_name %></strong> <span style="color:#5b6b78;">@<%= m.username %></span></td>
+              <td><%= m.email %></td>
+              <td><%= m.active_listings %></td>
+              <td><%= m.pending_offers %></td>
+              <td>
+                <form method="POST" action="/owner/members/<%= m.id %>/delete" data-confirm="Remove <%= m.username %> and all of their listings, offers and trades?">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="btn btn-danger btn-small" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <p style="color:#5b6b78;">No members yet.</p>
   <% } %>
 </section>
 
