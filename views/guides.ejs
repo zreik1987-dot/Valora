@@ -1,0 +1,16 @@
+<%- include('partials/header', { title: title }) %>
+
+<h1>Trading guides</h1>
+<p style="font-size:17px;max-width:720px;">Practical, no-nonsense advice for getting the most out of every trade — valuing your items, staying safe, and spotting a good deal.</p>
+
+<div class="guide-list">
+  <% for (const g of guides) { %>
+    <a class="guide-card" href="/guides/<%= g.slug %>/">
+      <h3><%= g.title %></h3>
+      <p><%= g.description %></p>
+      <span class="guide-link">Read guide →</span>
+    </a>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

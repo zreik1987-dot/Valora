@@ -4,6 +4,7 @@
 
 const express = require('express');
 const lib = require('../lib');
+const guides = require('../guides');
 const { ah } = lib;
 
 module.exports = function (db, cfg, mw) {
@@ -17,7 +18,8 @@ module.exports = function (db, cfg, mw) {
       const listings = await db.all(
         `SELECT id FROM listings WHERE status = 'active' ORDER BY id DESC LIMIT 5000`
       );
-      const urls = ['', '/browse', '/about', '/signup'].map((p) => `${base}${p}/`);
+      const urls = ['', '/browse', '/about', '/signup', '/guides'].map((p) => `${base}${p}/`);
+      for (const g of guides.listGuides()) urls.push(`${base}/guides/${g.slug}/`);
       for (const l of listings) urls.push(`${base}/listings/${l.id}/`);
       res.type('application/xml').send(
         `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
@@ -84,6 +86,21 @@ module.exports = function (db, cfg, mw) {
   r.get('/about', (req, res) => {
     res.render('about', { title: 'About Valora' });
   });
+
+  r.get('/guides', (req, res) => {
+    res.render('guides', { title: 'Trading guides', guides: guides.listGuides() });
+  });
+
+  r.get(
+    '/guides/:slug',
+    ah(async (req, res) => {
+      const guide = guides.getGuide(String(req.params.slug || ''));
+      if (!guide) {
+        return res.status(404).render('error', { status: 404, message: 'Guide not found.' });
+      }
+      res.render('guide', { title: guide.title, guide });
+    })
+  );
 
   r.get(
     '/listings/:id',

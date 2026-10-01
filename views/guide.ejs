@@ -1,0 +1,15 @@
+<%- include('partials/header', { title: title, metaDescription: guide.description }) %>
+
+<div class="guide-page">
+  <a href="/guides/" class="back-link">← All guides</a>
+  <article class="guide-article">
+    <%- guide.html %>
+  </article>
+  <div class="guide-cta">
+    <h3>Ready to put it into practice?</h3>
+    <p>List your first item on Valora — it's free.</p>
+    <a class="btn btn-primary" href="/signup">Start trading free</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

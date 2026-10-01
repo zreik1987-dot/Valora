@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><%= title %> · Valora</title>
-<meta name="description" content="Valora — Trade Almost Anything. List items, make trade offers, and swap with people near you.">
+<meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'Valora — Trade Almost Anything. List items, make trade offers, and swap with people near you.' %>">
 <meta property="og:site_name" content="Valora">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Valora — Trade Almost Anything">
-<meta property="og:description" content="List items, make trade offers, and swap with people near you. Only 5% fee when cash changes hands.">
+<meta property="og:title" content="<%= title %> · Valora">
+<meta property="og:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'List items, make trade offers, and swap with people near you. Only 5% fee when cash changes hands.' %>">
 <meta property="og:image" content="/icons/icon-512.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Valora — Trade Almost Anything">
