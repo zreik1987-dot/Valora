@@ -218,3 +218,12 @@ table.data tr:last-child td { border-bottom: none; }
   .form-card { padding: 22px; }
   .nav { gap: 12px; }
 }
+
+/* PWA install button: floating, appears only when the browser offers installation. */
+.pwa-install {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  box-shadow: 0 10px 30px rgba(7, 29, 43, 0.25);
+}

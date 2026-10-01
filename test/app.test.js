@@ -888,4 +888,28 @@ describe('public pages', () => {
     const res = await request(ctx.app).get('/no-such-page');
     assert.equal(res.status, 404);
   });
+
+  it('serves the installable-app (PWA) assets', async () => {
+    const home = await request(ctx.app).get('/');
+    assert.match(home.text, /rel="manifest" href="\/manifest\.webmanifest"/);
+    assert.match(home.text, /name="apple-mobile-web-app-capable"/);
+    assert.match(home.text, /rel="apple-touch-icon"/);
+
+    const manifest = await request(ctx.app).get('/manifest.webmanifest');
+    assert.equal(manifest.status, 200);
+    assert.match(manifest.headers['content-type'], /manifest\+json|application\/json/);
+    const m = JSON.parse(manifest.text);
+    assert.equal(m.name, 'Valora — Trade Almost Anything');
+    assert.equal(m.display, 'standalone');
+
+    for (const icon of ['/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png']) {
+      const r = await request(ctx.app).get(icon);
+      assert.equal(r.status, 200, icon);
+      assert.match(r.headers['content-type'], /image\/png/);
+    }
+
+    const sw = await request(ctx.app).get('/sw.js');
+    assert.equal(sw.status, 200);
+    assert.match(sw.headers['content-type'], /javascript/);
+  });
 });
